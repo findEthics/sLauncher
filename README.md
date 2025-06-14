@@ -5,11 +5,13 @@ A minimalist Android launcher focused on simplicity and essential functionality.
 ## Features
 
 - **Minimalist Design**: Clean interface with a 3x2 grid layout for 6 customizable app shortcuts
+- **Persistent App Selection**: Selected apps remain saved across app restarts and force closes
 - **Date Display**: Shows current date in a readable format (e.g., "Friday, June 13")
 - **Smart Calendar Integration**: Tap the date to open Mudita Calendar (if installed) or default calendar app
 - **App Selection**: Long press or tap empty slots to choose apps from all installed applications
 - **All Apps Access**: Quick access to all installed apps via the hamburger menu button
 - **Home Screen Integration**: Functions as a proper Android launcher with home button support
+- **Lightweight Performance**: Optimized for minimal memory usage and fast startup times
 
 ## Screenshots
 
@@ -21,7 +23,7 @@ A minimalist Android launcher focused on simplicity and essential functionality.
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/sLauncher.git
+   git clone https://github.com/findEthics/sLauncher.git
    cd sLauncher
    ```
 
@@ -45,6 +47,7 @@ A minimalist Android launcher focused on simplicity and essential functionality.
 - **Empty slots**: Tap any empty app slot to select an app from the installed apps list
 - **Changing apps**: Long press any app icon to change the selected app
 - **Launching apps**: Single tap on configured app icons to launch them
+- **Persistent storage**: Your selected apps are automatically saved and restored when the launcher restarts
 
 ### Accessing All Apps
 - Tap the hamburger menu button (three horizontal lines) in the bottom right corner
@@ -69,6 +72,8 @@ The app also uses `<queries>` declaration to access information about installed 
 - **Target SDK**: API 34 (Android 14)
 - **Language**: Kotlin
 - **Architecture**: Single Activity with XML layouts
+- **Data Storage**: SharedPreferences for lightweight app selection persistence
+- **Memory Optimization**: Efficient app loading and icon caching
 
 ## Contributing
 
@@ -84,7 +89,13 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Changelog
 
-### v1.0.0 (Current)
+### v1.1.0 (Current)
+- Added SharedPreferences persistence for app selections
+- App choices now survive force closes and restarts
+- Improved memory management for lightweight performance
+- Enhanced user experience with persistent app configuration
+
+### v1.0.0
 - Initial release
 - 3x2 app grid layout
 - Date display with calendar integration
@@ -93,7 +104,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Support
 
-If you encounter any issues or have suggestions, please [open an issue](https://github.com/yourusername/sLauncher/issues) on GitHub.
+If you encounter any issues or have suggestions, please [open an issue](https://github.com/findEthics/sLauncher/issues) on GitHub.
 
 ## Acknowledgments
 
