@@ -1,6 +1,7 @@
 package com.example.slauncher
 
 import android.content.Intent
+import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.widget.ImageButton
@@ -17,13 +18,21 @@ class MainActivity : AppCompatActivity() {
     private lateinit var appIcons: Array<ImageView>
     private val selectedApps = Array<AppInfo?>(6) { null }
     private lateinit var installedApps: List<AppInfo>
+    private lateinit var sharedPreferences: SharedPreferences
+    
+    companion object {
+        private const val PREFS_NAME = "launcher_prefs"
+        private const val KEY_APP_PREFIX = "selected_app_"
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         
+        sharedPreferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
         initializeViews()
         loadInstalledApps()
+        loadSavedApps()
         setupClickListeners()
         setupAllAppsButton()
     }
@@ -120,6 +129,7 @@ class MainActivity : AppCompatActivity() {
                 val selectedApp = installedApps[which]
                 selectedApps[position] = selectedApp
                 appIcons[position].setImageDrawable(selectedApp.icon)
+                saveAppToPreferences(position, selectedApp.packageName)
             }
             .setNegativeButton("Cancel", null)
             .show()
@@ -148,5 +158,24 @@ class MainActivity : AppCompatActivity() {
             }
             .setNegativeButton("Close", null)
             .show()
+    }
+    
+    private fun loadSavedApps() {
+        for (i in 0 until 6) {
+            val packageName = sharedPreferences.getString("$KEY_APP_PREFIX$i", null)
+            if (packageName != null) {
+                val app = installedApps.find { it.packageName == packageName }
+                if (app != null) {
+                    selectedApps[i] = app
+                    appIcons[i].setImageDrawable(app.icon)
+                }
+            }
+        }
+    }
+    
+    private fun saveAppToPreferences(position: Int, packageName: String) {
+        sharedPreferences.edit()
+            .putString("$KEY_APP_PREFIX$position", packageName)
+            .apply()
     }
 }
