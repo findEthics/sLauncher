@@ -2,7 +2,6 @@ package com.example.slauncher
 
 import android.content.Intent
 import android.content.SharedPreferences
-import android.content.pm.PackageManager
 import android.os.Bundle
 import android.widget.ImageButton
 import android.widget.ImageView
@@ -144,21 +143,11 @@ class MainActivity : AppCompatActivity() {
     
     private fun setupAllAppsButton() {
         findViewById<ImageButton>(R.id.all_apps_button).setOnClickListener {
-            showAllAppsDialog()
+            val intent = Intent(this, AllAppsActivity::class.java)
+            startActivity(intent)
         }
     }
     
-    private fun showAllAppsDialog() {
-        val appNames = installedApps.map { it.appName }.toTypedArray()
-        
-        AlertDialog.Builder(this)
-            .setTitle("All Installed Apps")
-            .setItems(appNames) { _, which ->
-                launchApp(installedApps[which])
-            }
-            .setNegativeButton("Close", null)
-            .show()
-    }
     
     private fun loadSavedApps() {
         for (i in 0 until 6) {
