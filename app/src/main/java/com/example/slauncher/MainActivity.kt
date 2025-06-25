@@ -9,9 +9,9 @@ import android.os.BatteryManager
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.graphics.Typeface
+import android.widget.GridLayout
 import android.widget.ImageButton
-import android.widget.LinearLayout
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -22,9 +22,9 @@ import java.util.Locale
 
 class MainActivity : AppCompatActivity() {
     
-    private lateinit var appNames: MutableList<TextView>
+    private lateinit var appIcons: MutableList<ImageView>
     private lateinit var selectedApps: MutableList<AppInfo?>
-    private lateinit var appNamesContainer: LinearLayout
+    private lateinit var appIconsContainer: GridLayout
     private var appCount: Int = 6
     private lateinit var installedApps: List<AppInfo>
     private lateinit var sharedPreferences: SharedPreferences
@@ -75,6 +75,19 @@ class MainActivity : AppCompatActivity() {
             updateTime()
             updateBattery()
         }
+    }
+    
+    private fun configureGridLayout() {
+        val (columns, rows) = when (appCount) {
+            2 -> Pair(1, 2)  // 1x2 grid
+            4 -> Pair(2, 2)  // 2x2 grid
+            6 -> Pair(2, 3)  // 2x3 grid
+            8 -> Pair(2, 4)  // 2x4 grid
+            else -> Pair(2, 3) // Default to 2x3
+        }
+        
+        appIconsContainer.columnCount = columns
+        appIconsContainer.rowCount = rows
     }
     
     private fun openClockApp() {
@@ -139,51 +152,46 @@ class MainActivity : AppCompatActivity() {
     }
     
     private fun initializeViews() {
-        appNames = mutableListOf()
+        appIcons = mutableListOf()
         selectedApps = mutableListOf()
-        appNamesContainer = findViewById<LinearLayout>(R.id.app_names_container)
+        appIconsContainer = findViewById<GridLayout>(R.id.app_names_container)
         
         // Clear existing views
-        appNamesContainer.removeAllViews()
+        appIconsContainer.removeAllViews()
         
-        // Create dynamic TextViews based on app count
+        // Configure grid layout based on app count
+        configureGridLayout()
+        
+        // Create dynamic ImageViews based on app count
         for (i in 0 until appCount) {
-            val textView = TextView(this).apply {
-                layoutParams = LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    (48 * resources.displayMetrics.density).toInt()
-                ).apply {
+            val imageView = ImageView(this).apply {
+                layoutParams = GridLayout.LayoutParams().apply {
+                    width = (80 * resources.displayMetrics.density).toInt()
+                    height = (80 * resources.displayMetrics.density).toInt()
                     setMargins(
-                        (8 * resources.displayMetrics.density).toInt(),
-                        (8 * resources.displayMetrics.density).toInt(),
-                        (8 * resources.displayMetrics.density).toInt(),
-                        (8 * resources.displayMetrics.density).toInt()
+                        (16 * resources.displayMetrics.density).toInt(),
+                        (16 * resources.displayMetrics.density).toInt(),
+                        (16 * resources.displayMetrics.density).toInt(),
+                        (16 * resources.displayMetrics.density).toInt()
                     )
                 }
                 // Use theme-aware background
                 val typedArray2 = obtainStyledAttributes(intArrayOf(android.R.attr.selectableItemBackground))
                 background = typedArray2.getDrawable(0)
                 typedArray2.recycle()
-                gravity = android.view.Gravity.CENTER
+                scaleType = ImageView.ScaleType.CENTER_CROP
                 setPadding(
-                    (16 * resources.displayMetrics.density).toInt(),
-                    0,
-                    (16 * resources.displayMetrics.density).toInt(),
-                    0
+                    (8 * resources.displayMetrics.density).toInt(),
+                    (8 * resources.displayMetrics.density).toInt(),
+                    (8 * resources.displayMetrics.density).toInt(),
+                    (8 * resources.displayMetrics.density).toInt()
                 )
-                text = "Select App"
-                textSize = 24f // App names: 24sp bold
-                typeface = Typeface.DEFAULT_BOLD
-                
-                // Use theme-aware text color
-                val typedArray = obtainStyledAttributes(intArrayOf(android.R.attr.textColorPrimary))
-                setTextColor(typedArray.getColor(0, 0))
-                typedArray.recycle()
+                setImageResource(android.R.drawable.sym_def_app_icon)
             }
             
-            appNames.add(textView)
+            appIcons.add(imageView)
             selectedApps.add(null)
-            appNamesContainer.addView(textView)
+            appIconsContainer.addView(imageView)
         }
         
         updateDateDisplay()
@@ -252,8 +260,8 @@ class MainActivity : AppCompatActivity() {
     }
     
     private fun setupClickListeners() {
-        appNames.forEachIndexed { index, textView ->
-            textView.setOnClickListener {
+        appIcons.forEachIndexed { index, imageView ->
+            imageView.setOnClickListener {
                 if (selectedApps[index] == null) {
                     showAppSelectionDialog(index)
                 } else {
@@ -261,7 +269,7 @@ class MainActivity : AppCompatActivity() {
                 }
             }
             
-            textView.setOnLongClickListener {
+            imageView.setOnLongClickListener {
                 showAppSelectionDialog(index)
                 true
             }
@@ -276,7 +284,7 @@ class MainActivity : AppCompatActivity() {
             .setItems(appNamesList) { _, which ->
                 val selectedApp = installedApps[which]
                 selectedApps[position] = selectedApp
-                appNames[position].text = selectedApp.appName
+                appIcons[position].setImageDrawable(selectedApp.icon)
                 saveAppToPreferences(position, selectedApp.packageName)
             }
             .setNegativeButton("Cancel", null)
@@ -305,7 +313,7 @@ class MainActivity : AppCompatActivity() {
                 val app = installedApps.find { it.packageName == packageName }
                 if (app != null) {
                     selectedApps[i] = app
-                    appNames[i].text = app.appName
+                    appIcons[i].setImageDrawable(app.icon)
                 }
             }
         }

@@ -1,17 +1,42 @@
 # sLauncher
 
-A minimalist Android launcher focused on simplicity and essential functionality.
+A modern minimalist Android launcher with advanced customization features and essential information at your fingertips.
 
 ## Features
 
-- **Minimalist Design**: Clean interface with a 3x2 grid layout for 6 customizable app shortcuts
-- **Persistent App Selection**: Selected apps remain saved across app restarts and force closes
-- **Date Display**: Shows current date in a readable format (e.g., "Friday, June 13")
-- **Smart Calendar Integration**: Tap the date to open Mudita Calendar (if installed) or default calendar app
-- **App Selection**: Long press or tap empty slots to choose apps from all installed applications
-- **All Apps Access**: Quick access to all installed apps via the hamburger menu button
-- **Home Screen Integration**: Functions as a proper Android launcher with home button support
-- **Lightweight Performance**: Optimized for minimal memory usage and fast startup times
+### 🎨 **Dual Layout Modes**
+- **List View**: Clean text-based app names in vertical list (24sp bold, center-aligned)
+- **Grid View**: Traditional icon-based grid layout with flexible configurations (1×2, 2×2, 2×3, 2×4)
+
+### ⚡ **Essential Information Display** 
+- **Time Display**: Prominent 24-hour format time (26sp bold) with tap-to-open clock functionality
+- **Date Display**: Current date in readable format (22sp) with smart calendar integration  
+- **Battery Indicator**: Real-time battery percentage (18sp) with automatic updates
+- **Smart Hierarchy**: Information organized by importance for quick at-a-glance viewing
+
+### 🌙 **Advanced Theming**
+- **Dark Mode Support**: Complete light/dark theme switching with instant application
+- **Theme Persistence**: Your theme preference saved and restored across app sessions
+- **Theme-Aware Icons**: All UI elements including settings icon adapt to current theme
+- **System Integration**: Proper status bar styling for both light and dark modes
+
+### ⚙️ **Flexible Configuration**
+- **Dynamic App Count**: Choose 2, 4, 6, or 8 apps for home screen (grid view only)
+- **Grid Configurations**: 1×2, 2×2, 2×3, 2×4 layouts with automatic column/row adjustment
+- **Persistent Settings**: All customizations saved and restored automatically
+- **Settings Integration**: Unified settings dialog accessible from All Apps screen
+
+### 📱 **Smart App Management**
+- **Persistent App Selection**: Selected apps remain saved across restarts and force closes
+- **Long Press Selection**: Easy app changing via long press on any slot
+- **All Apps Access**: Full app list with real-time search functionality
+- **Intelligent App Detection**: Smart clock app detection with multiple fallbacks
+
+### 🔧 **System Integration**
+- **Proper Launcher**: Functions as complete Android launcher with home button support
+- **Boot Integration**: Starts automatically on device boot
+- **Memory Optimized**: Efficient app loading and minimal resource usage
+- **Global Application**: Theme persistence handled at application level
 
 ## Screenshots
 
@@ -89,7 +114,23 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Changelog
 
-### v1.1.0 (Current)
+### v2.0.0 (Current - Grid View)
+- **Grid Layout**: Traditional icon-based grid with flexible configurations (1×2, 2×2, 2×3, 2×4)
+- **App Icons**: Display actual app icons instead of text names
+- **Dynamic Grid**: Automatic row/column adjustment based on app count
+- **Enhanced Settings**: Grid-specific options with visual configuration info
+- **Icon Optimization**: 80dp icons with proper spacing and theme-aware backgrounds
+
+### v1.5.0 (List View)  
+- **List Layout**: Clean vertical list of app names with center alignment
+- **Time Display**: 24-hour format time with clock app integration
+- **Battery Indicator**: Real-time battery percentage with auto-updates  
+- **Dark Mode**: Complete theme switching with theme-aware UI elements
+- **Enhanced Typography**: Improved font sizes and styling hierarchy
+- **Settings Dialog**: Unified settings for app count and theme selection
+- **Smart Integration**: Calendar and clock app detection with fallbacks
+
+### v1.1.0
 - Added SharedPreferences persistence for app selections
 - App choices now survive force closes and restarts
 - Improved memory management for lightweight performance
