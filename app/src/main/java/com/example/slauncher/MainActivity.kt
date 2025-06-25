@@ -4,7 +4,6 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
 import android.widget.ImageButton
-import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -14,7 +13,7 @@ import java.util.Locale
 
 class MainActivity : AppCompatActivity() {
     
-    private lateinit var appIcons: Array<ImageView>
+    private lateinit var appNames: Array<TextView>
     private val selectedApps = Array<AppInfo?>(6) { null }
     private lateinit var installedApps: List<AppInfo>
     private lateinit var sharedPreferences: SharedPreferences
@@ -37,13 +36,13 @@ class MainActivity : AppCompatActivity() {
     }
     
     private fun initializeViews() {
-        appIcons = arrayOf(
-            findViewById(R.id.app_icon_1),
-            findViewById(R.id.app_icon_2),
-            findViewById(R.id.app_icon_3),
-            findViewById(R.id.app_icon_4),
-            findViewById(R.id.app_icon_5),
-            findViewById(R.id.app_icon_6)
+        appNames = arrayOf(
+            findViewById(R.id.app_name_1),
+            findViewById(R.id.app_name_2),
+            findViewById(R.id.app_name_3),
+            findViewById(R.id.app_name_4),
+            findViewById(R.id.app_name_5),
+            findViewById(R.id.app_name_6)
         )
         
         updateDateDisplay()
@@ -103,8 +102,8 @@ class MainActivity : AppCompatActivity() {
     }
     
     private fun setupClickListeners() {
-        appIcons.forEachIndexed { index, imageView ->
-            imageView.setOnClickListener {
+        appNames.forEachIndexed { index, textView ->
+            textView.setOnClickListener {
                 if (selectedApps[index] == null) {
                     showAppSelectionDialog(index)
                 } else {
@@ -112,7 +111,7 @@ class MainActivity : AppCompatActivity() {
                 }
             }
             
-            imageView.setOnLongClickListener {
+            textView.setOnLongClickListener {
                 showAppSelectionDialog(index)
                 true
             }
@@ -120,14 +119,14 @@ class MainActivity : AppCompatActivity() {
     }
     
     private fun showAppSelectionDialog(position: Int) {
-        val appNames = installedApps.map { it.appName }.toTypedArray()
+        val appNamesList = installedApps.map { it.appName }.toTypedArray()
         
         AlertDialog.Builder(this)
             .setTitle("Select App")
-            .setItems(appNames) { _, which ->
+            .setItems(appNamesList) { _, which ->
                 val selectedApp = installedApps[which]
                 selectedApps[position] = selectedApp
-                appIcons[position].setImageDrawable(selectedApp.icon)
+                appNames[position].text = selectedApp.appName
                 saveAppToPreferences(position, selectedApp.packageName)
             }
             .setNegativeButton("Cancel", null)
@@ -156,7 +155,7 @@ class MainActivity : AppCompatActivity() {
                 val app = installedApps.find { it.packageName == packageName }
                 if (app != null) {
                     selectedApps[i] = app
-                    appIcons[i].setImageDrawable(app.icon)
+                    appNames[i].text = app.appName
                 }
             }
         }
