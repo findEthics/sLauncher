@@ -3,6 +3,7 @@ package com.example.slauncher
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import androidx.appcompat.app.AppCompatDelegate
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.inputmethod.InputMethodManager
@@ -22,6 +23,10 @@ class AllAppsActivity : AppCompatActivity() {
     
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        
+        // Apply theme before setting content view
+        applyTheme()
+        
         setContentView(R.layout.activity_all_apps)
         
         appsListView = findViewById(R.id.apps_list_view)
@@ -85,7 +90,37 @@ class AllAppsActivity : AppCompatActivity() {
         }
     }
     
+    private fun applyTheme() {
+        val sharedPreferences = getSharedPreferences("launcher_prefs", MODE_PRIVATE)
+        val isDarkMode = sharedPreferences.getBoolean("dark_mode", false)
+        AppCompatDelegate.setDefaultNightMode(
+            if (isDarkMode) AppCompatDelegate.MODE_NIGHT_YES 
+            else AppCompatDelegate.MODE_NIGHT_NO
+        )
+    }
+    
     private fun showSettingsDialog() {
+        val sharedPreferences = getSharedPreferences("launcher_prefs", MODE_PRIVATE)
+        
+        // Create a custom dialog layout
+        val settingsOptions = arrayOf(
+            "Home Screen Apps",
+            "Dark Mode"
+        )
+        
+        AlertDialog.Builder(this)
+            .setTitle("Settings")
+            .setItems(settingsOptions) { _, which ->
+                when (which) {
+                    0 -> showAppCountDialog()
+                    1 -> showDarkModeDialog()
+                }
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+    
+    private fun showAppCountDialog() {
         val sharedPreferences = getSharedPreferences("launcher_prefs", MODE_PRIVATE)
         val currentAppCount = sharedPreferences.getInt("app_count", 6)
         
@@ -107,6 +142,35 @@ class AllAppsActivity : AppCompatActivity() {
                     .setMessage("Home screen will now display $selectedCount apps. Go back to see the changes.")
                     .setPositiveButton("OK", null)
                     .show()
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+    
+    private fun showDarkModeDialog() {
+        val sharedPreferences = getSharedPreferences("launcher_prefs", MODE_PRIVATE)
+        val isDarkMode = sharedPreferences.getBoolean("dark_mode", false)
+        
+        val themeOptions = arrayOf("Light Mode", "Dark Mode")
+        val currentSelection = if (isDarkMode) 1 else 0
+        
+        AlertDialog.Builder(this)
+            .setTitle("Theme")
+            .setSingleChoiceItems(themeOptions, currentSelection) { dialog, which ->
+                val darkModeEnabled = which == 1
+                
+                // Save preference
+                sharedPreferences.edit()
+                    .putBoolean("dark_mode", darkModeEnabled)
+                    .apply()
+                
+                // Apply theme immediately
+                AppCompatDelegate.setDefaultNightMode(
+                    if (darkModeEnabled) AppCompatDelegate.MODE_NIGHT_YES 
+                    else AppCompatDelegate.MODE_NIGHT_NO
+                )
+                
+                dialog.dismiss()
             }
             .setNegativeButton("Cancel", null)
             .show()

@@ -1,13 +1,21 @@
 package com.example.slauncher
 
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.SharedPreferences
+import android.os.BatteryManager
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.graphics.Typeface
 import android.widget.ImageButton
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -20,24 +28,34 @@ class MainActivity : AppCompatActivity() {
     private var appCount: Int = 6
     private lateinit var installedApps: List<AppInfo>
     private lateinit var sharedPreferences: SharedPreferences
+    private lateinit var timeDisplay: TextView
+    private lateinit var batteryDisplay: TextView
+    private lateinit var timeUpdateHandler: Handler
+    private lateinit var batteryReceiver: BroadcastReceiver
     
     companion object {
         private const val PREFS_NAME = "launcher_prefs"
         private const val KEY_APP_PREFIX = "selected_app_"
         private const val KEY_APP_COUNT = "app_count"
+        private const val KEY_DARK_MODE = "dark_mode"
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        
+        // Apply theme before setting content view
+        sharedPreferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
+        applyTheme()
+        
         setContentView(R.layout.activity_main)
         
-        sharedPreferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
         appCount = sharedPreferences.getInt(KEY_APP_COUNT, 6)
         initializeViews()
         loadInstalledApps()
         loadSavedApps()
         setupClickListeners()
         setupAllAppsButton()
+        setupTimeAndBattery()
     }
     
     override fun onResume() {
@@ -51,6 +69,73 @@ class MainActivity : AppCompatActivity() {
             loadSavedApps()
             setupClickListeners()
         }
+        
+        // Refresh time and battery when resuming
+        if (::timeDisplay.isInitialized) {
+            updateTime()
+            updateBattery()
+        }
+    }
+    
+    private fun openClockApp() {
+        // Try to open the default clock/alarm app
+        // Common clock app package names
+        val clockPackages = listOf(
+            "com.google.android.deskclock",  // Google Clock
+            "com.android.deskclock",         // AOSP Clock
+            "com.samsung.android.app.clockpackage", // Samsung Clock
+            "com.htc.android.worldclock",    // HTC Clock
+            "com.sec.android.app.clockpackage" // Samsung variant
+        )
+        
+        // Try each known clock package
+        for (packageName in clockPackages) {
+            val launchIntent = packageManager.getLaunchIntentForPackage(packageName)
+            if (launchIntent != null) {
+                startActivity(launchIntent)
+                return
+            }
+        }
+        
+        // Fallback: Try to find any app with "clock" or "alarm" in the name
+        val pm = packageManager
+        val mainIntent = Intent(Intent.ACTION_MAIN, null).apply {
+            addCategory(Intent.CATEGORY_LAUNCHER)
+        }
+        
+        val apps = pm.queryIntentActivities(mainIntent, 0)
+        val clockApps = apps.filter { resolveInfo ->
+            val appName = resolveInfo.loadLabel(pm).toString().lowercase()
+            appName.contains("clock") || appName.contains("alarm") || appName.contains("time")
+        }
+        
+        if (clockApps.isNotEmpty()) {
+            val clockApp = clockApps.first()
+            val launchIntent = Intent().apply {
+                component = android.content.ComponentName(
+                    clockApp.activityInfo.packageName,
+                    clockApp.activityInfo.name
+                )
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK
+            }
+            startActivity(launchIntent)
+        } else {
+            // Final fallback: Open system settings for date/time
+            try {
+                val settingsIntent = Intent(android.provider.Settings.ACTION_DATE_SETTINGS)
+                startActivity(settingsIntent)
+            } catch (e: Exception) {
+                // If all else fails, do nothing
+            }
+        }
+    }
+    
+    private fun applyTheme() {
+        val isDarkMode = sharedPreferences.getBoolean(KEY_DARK_MODE, false)
+        AppCompatDelegate.setDefaultNightMode(
+            if (isDarkMode) AppCompatDelegate.MODE_NIGHT_YES 
+            else AppCompatDelegate.MODE_NIGHT_NO
+        )
     }
     
     private fun initializeViews() {
@@ -75,8 +160,11 @@ class MainActivity : AppCompatActivity() {
                         (8 * resources.displayMetrics.density).toInt()
                     )
                 }
-                background = getDrawable(android.R.drawable.list_selector_background)
-                gravity = android.view.Gravity.CENTER_VERTICAL
+                // Use theme-aware background
+                val typedArray2 = obtainStyledAttributes(intArrayOf(android.R.attr.selectableItemBackground))
+                background = typedArray2.getDrawable(0)
+                typedArray2.recycle()
+                gravity = android.view.Gravity.CENTER
                 setPadding(
                     (16 * resources.displayMetrics.density).toInt(),
                     0,
@@ -84,8 +172,13 @@ class MainActivity : AppCompatActivity() {
                     0
                 )
                 text = "Select App"
-                textSize = 16f
-                setTextColor(getColor(android.R.color.primary_text_light))
+                textSize = 24f // App names: 24sp bold
+                typeface = Typeface.DEFAULT_BOLD
+                
+                // Use theme-aware text color
+                val typedArray = obtainStyledAttributes(intArrayOf(android.R.attr.textColorPrimary))
+                setTextColor(typedArray.getColor(0, 0))
+                typedArray.recycle()
             }
             
             appNames.add(textView)
@@ -94,6 +187,15 @@ class MainActivity : AppCompatActivity() {
         }
         
         updateDateDisplay()
+        
+        // Initialize time and battery displays
+        timeDisplay = findViewById(R.id.time_display)
+        batteryDisplay = findViewById(R.id.battery_display)
+        
+        // Set click listener for time display
+        timeDisplay.setOnClickListener {
+            openClockApp()
+        }
     }
     
     private fun updateDateDisplay() {
@@ -205,6 +307,76 @@ class MainActivity : AppCompatActivity() {
                     selectedApps[i] = app
                     appNames[i].text = app.appName
                 }
+            }
+        }
+    }
+    
+    private fun setupTimeAndBattery() {
+        // Initialize handler for time updates
+        timeUpdateHandler = Handler(Looper.getMainLooper())
+        
+        // Update time immediately and then every minute
+        updateTime()
+        startTimeUpdates()
+        
+        // Setup battery monitoring
+        setupBatteryMonitoring()
+        updateBattery()
+    }
+    
+    private fun updateTime() {
+        val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
+        val currentTime = timeFormat.format(Date())
+        timeDisplay.text = currentTime
+    }
+    
+    private fun startTimeUpdates() {
+        val updateTimeRunnable = object : Runnable {
+            override fun run() {
+                updateTime()
+                timeUpdateHandler.postDelayed(this, 60000) // Update every minute
+            }
+        }
+        timeUpdateHandler.postDelayed(updateTimeRunnable, 60000)
+    }
+    
+    private fun setupBatteryMonitoring() {
+        batteryReceiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context?, intent: Intent?) {
+                updateBattery()
+            }
+        }
+        
+        val filter = IntentFilter(Intent.ACTION_BATTERY_CHANGED)
+        registerReceiver(batteryReceiver, filter)
+    }
+    
+    private fun updateBattery() {
+        val batteryStatus = registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
+        val level = batteryStatus?.getIntExtra(BatteryManager.EXTRA_LEVEL, -1) ?: -1
+        val scale = batteryStatus?.getIntExtra(BatteryManager.EXTRA_SCALE, -1) ?: -1
+        
+        if (level != -1 && scale != -1) {
+            val batteryPct = (level * 100 / scale)
+            batteryDisplay.text = "Battery: $batteryPct%"
+        } else {
+            batteryDisplay.text = "Battery: --"
+        }
+    }
+    
+    override fun onDestroy() {
+        super.onDestroy()
+        
+        // Clean up
+        if (::timeUpdateHandler.isInitialized) {
+            timeUpdateHandler.removeCallbacksAndMessages(null)
+        }
+        
+        if (::batteryReceiver.isInitialized) {
+            try {
+                unregisterReceiver(batteryReceiver)
+            } catch (e: IllegalArgumentException) {
+                // Receiver was not registered
             }
         }
     }
