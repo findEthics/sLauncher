@@ -4,6 +4,7 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
 import android.widget.ImageButton
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -13,14 +14,17 @@ import java.util.Locale
 
 class MainActivity : AppCompatActivity() {
     
-    private lateinit var appNames: Array<TextView>
-    private val selectedApps = Array<AppInfo?>(6) { null }
+    private lateinit var appNames: MutableList<TextView>
+    private lateinit var selectedApps: MutableList<AppInfo?>
+    private lateinit var appNamesContainer: LinearLayout
+    private var appCount: Int = 6
     private lateinit var installedApps: List<AppInfo>
     private lateinit var sharedPreferences: SharedPreferences
     
     companion object {
         private const val PREFS_NAME = "launcher_prefs"
         private const val KEY_APP_PREFIX = "selected_app_"
+        private const val KEY_APP_COUNT = "app_count"
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -28,6 +32,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         
         sharedPreferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
+        appCount = sharedPreferences.getInt(KEY_APP_COUNT, 6)
         initializeViews()
         loadInstalledApps()
         loadSavedApps()
@@ -35,15 +40,58 @@ class MainActivity : AppCompatActivity() {
         setupAllAppsButton()
     }
     
+    override fun onResume() {
+        super.onResume()
+        
+        // Check if app count has changed and refresh if needed
+        val newAppCount = sharedPreferences.getInt(KEY_APP_COUNT, 6)
+        if (newAppCount != appCount) {
+            appCount = newAppCount
+            initializeViews()
+            loadSavedApps()
+            setupClickListeners()
+        }
+    }
+    
     private fun initializeViews() {
-        appNames = arrayOf(
-            findViewById(R.id.app_name_1),
-            findViewById(R.id.app_name_2),
-            findViewById(R.id.app_name_3),
-            findViewById(R.id.app_name_4),
-            findViewById(R.id.app_name_5),
-            findViewById(R.id.app_name_6)
-        )
+        appNames = mutableListOf()
+        selectedApps = mutableListOf()
+        appNamesContainer = findViewById<LinearLayout>(R.id.app_names_container)
+        
+        // Clear existing views
+        appNamesContainer.removeAllViews()
+        
+        // Create dynamic TextViews based on app count
+        for (i in 0 until appCount) {
+            val textView = TextView(this).apply {
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    (48 * resources.displayMetrics.density).toInt()
+                ).apply {
+                    setMargins(
+                        (8 * resources.displayMetrics.density).toInt(),
+                        (8 * resources.displayMetrics.density).toInt(),
+                        (8 * resources.displayMetrics.density).toInt(),
+                        (8 * resources.displayMetrics.density).toInt()
+                    )
+                }
+                background = getDrawable(android.R.drawable.list_selector_background)
+                gravity = android.view.Gravity.CENTER_VERTICAL
+                setPadding(
+                    (16 * resources.displayMetrics.density).toInt(),
+                    0,
+                    (16 * resources.displayMetrics.density).toInt(),
+                    0
+                )
+                text = "Select App"
+                textSize = 16f
+                setTextColor(getColor(android.R.color.primary_text_light))
+            }
+            
+            appNames.add(textView)
+            selectedApps.add(null)
+            appNamesContainer.addView(textView)
+        }
         
         updateDateDisplay()
     }
@@ -149,7 +197,7 @@ class MainActivity : AppCompatActivity() {
     
     
     private fun loadSavedApps() {
-        for (i in 0 until 6) {
+        for (i in 0 until appCount) {
             val packageName = sharedPreferences.getString("$KEY_APP_PREFIX$i", null)
             if (packageName != null) {
                 val app = installedApps.find { it.packageName == packageName }
