@@ -16,6 +16,7 @@ class SystemInfoManager(private val context: Context) {
     
     private var timeUpdateHandler: Handler? = null
     private var batteryReceiver: BroadcastReceiver? = null
+    private var weatherManager: WeatherManager? = null
     private var isActive = false
     
     interface SystemInfoListener {
@@ -32,11 +33,13 @@ class SystemInfoManager(private val context: Context) {
     fun initialize(
         timeDisplay: TextView,
         dateDisplay: TextView,
-        batteryDisplay: TextView
+        batteryDisplay: TextView,
+        weatherDisplay: TextView
     ) {
         setupTimeDisplay(timeDisplay)
         setupDateDisplay(dateDisplay)
         setupBatteryDisplay(batteryDisplay)
+        setupWeatherDisplay(weatherDisplay)
         isActive = true
     }
     
@@ -62,6 +65,11 @@ class SystemInfoManager(private val context: Context) {
     private fun setupBatteryDisplay(batteryDisplay: TextView) {
         setupBatteryMonitoring(batteryDisplay)
         updateBattery(batteryDisplay)
+    }
+    
+    private fun setupWeatherDisplay(weatherDisplay: TextView) {
+        weatherManager = WeatherManager(context)
+        weatherManager?.initialize(weatherDisplay)
     }
     
     private fun updateTime(timeDisplay: TextView) {
@@ -199,5 +207,8 @@ class SystemInfoManager(private val context: Context) {
             }
         }
         batteryReceiver = null
+        
+        weatherManager?.destroy()
+        weatherManager = null
     }
 }

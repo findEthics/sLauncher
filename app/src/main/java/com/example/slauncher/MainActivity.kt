@@ -11,11 +11,13 @@ import androidx.appcompat.app.AppCompatDelegate
 
 class MainActivity : AppCompatActivity(), 
     GridManager.GridUpdateListener,
-    SystemInfoManager.SystemInfoListener {
+    SystemInfoManager.SystemInfoListener,
+    GestureManager.GestureListener {
     
     private lateinit var appSelectionManager: AppSelectionManager
     private lateinit var gridManager: GridManager
     private lateinit var systemInfoManager: SystemInfoManager
+    private lateinit var gestureManager: GestureManager
     private lateinit var appIconsContainer: GridLayout
     private lateinit var sharedPreferences: SharedPreferences
     
@@ -50,6 +52,7 @@ class MainActivity : AppCompatActivity(),
         appSelectionManager = AppSelectionManager(this)
         gridManager = GridManager(this, appSelectionManager)
         systemInfoManager = SystemInfoManager(this)
+        gestureManager = GestureManager(this, this)
         
         gridManager.setGridUpdateListener(this)
         systemInfoManager.setSystemInfoListener(this)
@@ -70,6 +73,17 @@ class MainActivity : AppCompatActivity(),
     
     override fun onAppLaunched(appInfo: AppInfo) {
         appSelectionManager.launchApp(appInfo)
+    }
+    
+    override fun onSwipeUp() {
+        // Launch AllAppsActivity when swiping up
+        val intent = Intent(this, AllAppsActivity::class.java)
+        startActivity(intent)
+    }
+    
+    override fun onSwipeDown() {
+        // Optional: Could implement something like closing all apps or settings
+        // For now, do nothing
     }
     
     private fun applyTheme() {
@@ -104,8 +118,13 @@ class MainActivity : AppCompatActivity(),
         val timeDisplay = findViewById<TextView>(R.id.time_display)
         val dateDisplay = findViewById<TextView>(R.id.date_display)
         val batteryDisplay = findViewById<TextView>(R.id.battery_display)
+        val weatherDisplay = findViewById<TextView>(R.id.weather_display)
         
-        systemInfoManager.initialize(timeDisplay, dateDisplay, batteryDisplay)
+        systemInfoManager.initialize(timeDisplay, dateDisplay, batteryDisplay, weatherDisplay)
+        
+        // Setup gesture detection on the root layout
+        val rootLayout = findViewById<android.view.View>(android.R.id.content)
+        gestureManager.attachToView(rootLayout)
     }
     
     
