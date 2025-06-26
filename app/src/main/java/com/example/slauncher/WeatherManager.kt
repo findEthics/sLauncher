@@ -32,9 +32,9 @@ class WeatherManager(private val context: Context) {
         val month = calendar.get(Calendar.MONTH)
         
         val temp = when {
-            month in 11..2 -> Random().nextInt(15) + 35 // Winter: 35-50°F
-            month in 5..8 -> Random().nextInt(20) + 70  // Summer: 70-90°F
-            else -> Random().nextInt(25) + 50            // Spring/Fall: 50-75°F
+            month in 11..2 -> Random().nextInt(10) + 2  // Winter: 2-12°C
+            month in 5..8 -> Random().nextInt(15) + 21  // Summer: 21-36°C
+            else -> Random().nextInt(15) + 10           // Spring/Fall: 10-25°C
         }
         
         val condition = when {
@@ -44,7 +44,7 @@ class WeatherManager(private val context: Context) {
             else -> "🌙"            // Night
         }
         
-        return "$condition ${temp}°F"
+        return "$condition ${temp}°C"
     }
     
     fun refreshWeather() {
