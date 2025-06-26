@@ -1,16 +1,17 @@
 package com.example.slauncher
 
 import android.content.Context
-import android.widget.GridLayout
-import android.widget.ImageView
 import androidx.appcompat.app.AlertDialog
+import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 
 class GridManager(
     private val context: Context,
     private val appSelectionManager: AppSelectionManager
 ) {
     
-    private var appIcons: MutableList<ImageView> = mutableListOf()
+    private var appGridAdapter: AppGridAdapter? = null
+    private var recyclerView: RecyclerView? = null
     private var appCount: Int = 6
     
     interface GridUpdateListener {
@@ -25,87 +26,56 @@ class GridManager(
     }
     
     fun initializeGrid(
-        container: GridLayout,
+        recyclerView: RecyclerView,
         appCount: Int,
         selectedApps: List<AppInfo?>
     ) {
         this.appCount = appCount
-        appIcons.clear()
+        this.recyclerView = recyclerView
         
-        container.removeAllViews()
-        configureGridLayout(container)
-        
-        for (i in 0 until appCount) {
-            val imageView = createAppIcon(i)
-            appIcons.add(imageView)
-            container.addView(imageView)
-            
-            selectedApps.getOrNull(i)?.let { appInfo ->
-                imageView.setImageDrawable(appInfo.icon)
-            }
-        }
-        
-        setupClickListeners(selectedApps)
+        setupRecyclerView(recyclerView, appCount)
+        appGridAdapter?.updateSelectedApps(selectedApps)
+        appGridAdapter?.preloadVisibleIcons()
     }
     
-    private fun configureGridLayout(container: GridLayout) {
-        val (columns, rows) = when (appCount) {
-            2 -> Pair(1, 2)
-            4 -> Pair(2, 2)
-            6 -> Pair(2, 3)
-            8 -> Pair(2, 4)
-            else -> Pair(2, 3)
+    private fun setupRecyclerView(recyclerView: RecyclerView, appCount: Int) {
+        val columns = when (appCount) {
+            2 -> 1
+            4 -> 2 
+            6 -> 2
+            8 -> 2
+            else -> 2
         }
         
-        container.columnCount = columns
-        container.rowCount = rows
-    }
-    
-    private fun createAppIcon(index: Int): ImageView {
-        return ImageView(context).apply {
-            layoutParams = GridLayout.LayoutParams().apply {
-                width = (80 * context.resources.displayMetrics.density).toInt()
-                height = (80 * context.resources.displayMetrics.density).toInt()
-                setMargins(
-                    (16 * context.resources.displayMetrics.density).toInt(),
-                    (16 * context.resources.displayMetrics.density).toInt(),
-                    (16 * context.resources.displayMetrics.density).toInt(),
-                    (16 * context.resources.displayMetrics.density).toInt()
-                )
-            }
-            
-            val typedArray = context.obtainStyledAttributes(intArrayOf(android.R.attr.selectableItemBackground))
-            background = typedArray.getDrawable(0)
-            typedArray.recycle()
-            
-            scaleType = ImageView.ScaleType.CENTER_CROP
-            setPadding(
-                (8 * context.resources.displayMetrics.density).toInt(),
-                (8 * context.resources.displayMetrics.density).toInt(),
-                (8 * context.resources.displayMetrics.density).toInt(),
-                (8 * context.resources.displayMetrics.density).toInt()
+        val layoutManager = GridLayoutManager(context, columns)
+        recyclerView.layoutManager = layoutManager
+        
+        if (appGridAdapter == null) {
+            appGridAdapter = AppGridAdapter(
+                context = context,
+                appCount = appCount,
+                onAppClick = { position -> handleAppClick(position) },
+                onAppLongClick = { position -> handleAppLongClick(position) }
             )
-            setImageResource(android.R.drawable.sym_def_app_icon)
+            recyclerView.adapter = appGridAdapter
+        } else {
+            appGridAdapter?.updateAppCount(appCount)
         }
     }
     
-    private fun setupClickListeners(selectedApps: List<AppInfo?>) {
-        appIcons.forEachIndexed { index, imageView ->
-            imageView.setOnClickListener {
-                val selectedApp = selectedApps.getOrNull(index)
-                if (selectedApp == null) {
-                    showAppSelectionDialog(index)
-                } else {
-                    listener?.onAppLaunched(selectedApp)
-                }
-            }
-            
-            imageView.setOnLongClickListener {
-                showAppSelectionDialog(index)
-                true
-            }
+    private fun handleAppClick(position: Int) {
+        val selectedApp = appGridAdapter?.getSelectedApp(position)
+        if (selectedApp == null) {
+            showAppSelectionDialog(position)
+        } else {
+            listener?.onAppLaunched(selectedApp)
         }
     }
+    
+    private fun handleAppLongClick(position: Int) {
+        showAppSelectionDialog(position)
+    }
+    
     
     private fun showAppSelectionDialog(position: Int) {
         val installedApps = appSelectionManager.getInstalledApps()
@@ -115,7 +85,7 @@ class GridManager(
             .setTitle("Select App")
             .setItems(appNamesList) { _, which ->
                 val selectedApp = installedApps[which]
-                appIcons[position].setImageDrawable(selectedApp.icon)
+                appGridAdapter?.updateAppAt(position, selectedApp)
                 listener?.onAppSelected(position, selectedApp)
             }
             .setNegativeButton("Cancel", null)
@@ -123,10 +93,19 @@ class GridManager(
     }
     
     fun updateAppIcon(position: Int, appInfo: AppInfo) {
-        if (position < appIcons.size) {
-            appIcons[position].setImageDrawable(appInfo.icon)
-        }
+        appGridAdapter?.updateAppAt(position, appInfo)
     }
     
     fun getAppCount(): Int = appCount
+    
+    fun destroy() {
+        appGridAdapter?.destroy()
+        appGridAdapter = null
+        recyclerView = null
+    }
+    
+    fun refreshGrid(selectedApps: List<AppInfo?>) {
+        appGridAdapter?.updateSelectedApps(selectedApps)
+        appGridAdapter?.preloadVisibleIcons()
+    }
 }

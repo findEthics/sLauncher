@@ -58,4 +58,11 @@ dependencies {
     debugImplementation(libs.androidx.ui.test.manifest)
 
     implementation("com.google.android.material:material:1.12.0")
+    
+    // RecyclerView for grid management
+    implementation("androidx.recyclerview:recyclerview:1.3.2")
+    
+    // Coroutines for async icon loading
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
 }

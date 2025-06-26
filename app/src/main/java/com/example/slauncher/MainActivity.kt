@@ -3,11 +3,11 @@ package com.example.slauncher
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
-import android.widget.GridLayout
 import android.widget.ImageButton
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.recyclerview.widget.RecyclerView
 
 class MainActivity : AppCompatActivity(), 
     GridManager.GridUpdateListener,
@@ -18,7 +18,8 @@ class MainActivity : AppCompatActivity(),
     private lateinit var gridManager: GridManager
     private lateinit var systemInfoManager: SystemInfoManager
     private lateinit var gestureManager: GestureManager
-    private lateinit var appIconsContainer: GridLayout
+    private lateinit var iconCacheManager: IconCacheManager
+    private lateinit var appGridRecycler: RecyclerView
     private lateinit var sharedPreferences: SharedPreferences
     
     companion object {
@@ -53,6 +54,7 @@ class MainActivity : AppCompatActivity(),
         gridManager = GridManager(this, appSelectionManager)
         systemInfoManager = SystemInfoManager(this)
         gestureManager = GestureManager(this, this)
+        iconCacheManager = IconCacheManager.getInstance(this)
         
         gridManager.setGridUpdateListener(this)
         systemInfoManager.setSystemInfoListener(this)
@@ -99,7 +101,7 @@ class MainActivity : AppCompatActivity(),
     }
     
     private fun initializeViews() {
-        appIconsContainer = findViewById(R.id.app_names_container)
+        appGridRecycler = findViewById(R.id.app_grid_recycler)
         
         val appCount = appSelectionManager.getAppCount()
         appSelectionManager.initializeSelectedApps(appCount)
@@ -111,7 +113,7 @@ class MainActivity : AppCompatActivity(),
     private fun refreshGrid() {
         val appCount = appSelectionManager.getAppCount()
         val selectedApps = appSelectionManager.getSelectedApps()
-        gridManager.initializeGrid(appIconsContainer, appCount, selectedApps)
+        gridManager.initializeGrid(appGridRecycler, appCount, selectedApps)
     }
     
     private fun setupSystemInfo() {
@@ -138,5 +140,6 @@ class MainActivity : AppCompatActivity(),
     override fun onDestroy() {
         super.onDestroy()
         systemInfoManager.destroy()
+        gridManager.destroy()
     }
 }

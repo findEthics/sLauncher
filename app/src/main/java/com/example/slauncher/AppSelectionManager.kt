@@ -9,6 +9,7 @@ class AppSelectionManager(private val context: Context) {
     private var installedApps: List<AppInfo> = emptyList()
     private var selectedApps: MutableList<AppInfo?> = mutableListOf()
     private var sharedPreferences: SharedPreferences
+    private var iconCacheManager: IconCacheManager
     
     companion object {
         private const val PREFS_NAME = "launcher_prefs"
@@ -19,6 +20,7 @@ class AppSelectionManager(private val context: Context) {
     
     init {
         sharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        iconCacheManager = IconCacheManager.getInstance(context)
         loadInstalledApps()
     }
     
@@ -97,6 +99,8 @@ class AppSelectionManager(private val context: Context) {
     
     fun refreshInstalledApps() {
         loadInstalledApps()
+        // Preload icons for better performance
+        iconCacheManager.preloadIcons(installedApps)
     }
     
     fun updateAppCount(newAppCount: Int) {

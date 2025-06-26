@@ -58,13 +58,12 @@
 
     </LinearLayout>
 
-    <GridLayout
-        android:id="@+id/app_names_container"
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/app_grid_recycler"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:columnCount="2"
-        android:rowCount="4" />
+        android:nestedScrollingEnabled="false" />
 
     </LinearLayout>
 
