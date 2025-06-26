@@ -129,7 +129,7 @@ class AllAppsActivity : AppCompatActivity() {
         val currentSelection = appCountValues.indexOf(currentAppCount)
         
         AlertDialog.Builder(this)
-            .setTitle("Home Screen Apps (Grid View)")
+            .setTitle("Home Screen Apps")
             .setSingleChoiceItems(appCountOptions, currentSelection) { dialog, which ->
                 val selectedCount = appCountValues[which]
                 sharedPreferences.edit()
@@ -141,7 +141,7 @@ class AllAppsActivity : AppCompatActivity() {
                 val gridConfig = appCountOptions[which]
                 AlertDialog.Builder(this)
                     .setTitle("Settings Updated")
-                    .setMessage("Home screen will now display $selectedCount apps in $gridConfig grid. Go back to see the changes.")
+                    .setMessage("Go back to see the changes.")
                     .setPositiveButton("OK", null)
                     .show()
             }

@@ -37,7 +37,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:layout_marginBottom="24dp"
-        android:text="Battery: 85%"
+        android:text="🔋: 85%"
         android:textSize="18sp"
         android:textColor="?android:attr/textColorSecondary" />
 
