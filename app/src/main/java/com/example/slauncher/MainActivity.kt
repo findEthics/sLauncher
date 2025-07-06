@@ -5,17 +5,13 @@ import android.content.SharedPreferences
 import android.os.Bundle
 import android.widget.ImageButton
 import android.widget.ImageView
-import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 class MainActivity : AppCompatActivity() {
     
     private lateinit var appIcons: Array<ImageView>
-    private val selectedApps = Array<AppInfo?>(6) { null }
+    private val selectedApps = Array<AppInfo?>(8) { null }
     private lateinit var installedApps: List<AppInfo>
     private lateinit var sharedPreferences: SharedPreferences
     
@@ -43,48 +39,12 @@ class MainActivity : AppCompatActivity() {
             findViewById(R.id.app_icon_3),
             findViewById(R.id.app_icon_4),
             findViewById(R.id.app_icon_5),
-            findViewById(R.id.app_icon_6)
+            findViewById(R.id.app_icon_6),
+            findViewById(R.id.app_icon_7),
+            findViewById(R.id.app_icon_8)
         )
-        
-        updateDateDisplay()
     }
     
-    private fun updateDateDisplay() {
-        val dateFormat = SimpleDateFormat("EEEE, MMMM d", Locale.getDefault())
-        val currentDate = dateFormat.format(Date())
-        val dateDisplay = findViewById<TextView>(R.id.date_display)
-        dateDisplay.text = currentDate
-        
-        dateDisplay.setOnClickListener {
-            openCalendarApp()
-        }
-    }
-    
-    private fun openCalendarApp() {
-        // First try to open Mudita calendar
-        val muditaIntent = packageManager.getLaunchIntentForPackage("com.mudita.calendar")
-        if (muditaIntent != null) {
-            startActivity(muditaIntent)
-            return
-        }
-        
-        // Fall back to default calendar app
-        val calendarIntent = Intent(Intent.ACTION_MAIN).apply {
-            addCategory(Intent.CATEGORY_APP_CALENDAR)
-        }
-        
-        if (calendarIntent.resolveActivity(packageManager) != null) {
-            startActivity(calendarIntent)
-        } else {
-            // Last resort - try opening calendar with date view
-            val dateIntent = Intent(Intent.ACTION_VIEW).apply {
-                data = android.net.Uri.parse("content://com.android.calendar/time")
-            }
-            if (dateIntent.resolveActivity(packageManager) != null) {
-                startActivity(dateIntent)
-            }
-        }
-    }
     
     private fun loadInstalledApps() {
         val pm = packageManager
@@ -150,7 +110,7 @@ class MainActivity : AppCompatActivity() {
     
     
     private fun loadSavedApps() {
-        for (i in 0 until 6) {
+        for (i in 0 until 8) {
             val packageName = sharedPreferences.getString("$KEY_APP_PREFIX$i", null)
             if (packageName != null) {
                 val app = installedApps.find { it.packageName == packageName }

@@ -10,21 +10,11 @@
         android:orientation="vertical"
         android:gravity="center">
 
-    <TextView
-        android:id="@+id/date_display"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:layout_marginBottom="32dp"
-        android:text="Friday, June 13"
-        android:textSize="24sp"
-        android:textColor="?android:attr/textColorPrimary" />
-
     <GridLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:columnCount="2"
-        android:rowCount="3"
+        android:rowCount="4"
         android:layout_gravity="center">
 
         <ImageView
@@ -74,6 +64,24 @@
 
         <ImageView
             android:id="@+id/app_icon_6"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:layout_margin="16dp"
+            android:background="?android:attr/selectableItemBackground"
+            android:scaleType="centerCrop"
+            android:src="@android:drawable/sym_def_app_icon" />
+
+        <ImageView
+            android:id="@+id/app_icon_7"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:layout_margin="16dp"
+            android:background="?android:attr/selectableItemBackground"
+            android:scaleType="centerCrop"
+            android:src="@android:drawable/sym_def_app_icon" />
+
+        <ImageView
+            android:id="@+id/app_icon_8"
             android:layout_width="80dp"
             android:layout_height="80dp"
             android:layout_margin="16dp"
